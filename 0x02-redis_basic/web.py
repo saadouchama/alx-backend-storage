@@ -15,36 +15,35 @@ Tip: Use http://slowwly.robertomurray.co.uk to simulate
 a slow response and test your caching."""
 
 
-from functools import wraps
-import redis
 import requests
+import redis
+from functools import wraps
 
 r = redis.Redis()
 
-def url_access_count(method):
-    """Decorator for the get_page function"""
+
+def count_url_access(method):
+    """ Decorator counting how many times
+    a URL is accessed """
     @wraps(method)
     def wrapper(url):
-        """Wrapper function"""
-        key = "cached:" + url
-        cached_value = r.get(key)
-        if cached_value:
-            return cached_value.decode("utf-8")
-        
-        # Get new content and update cache
-        key_count = "count:" + url
-        html_content = method(url)
-        
-        r.incr(key_count)
-        r.set(key, html_content, ex=10)
-        return html_content
+        cached_key = "cached:" + url
+        cached_data = r.get(cached_key)
+        if cached_data:
+            return cached_data.decode("utf-8")
+
+        count_key = "count:" + url
+        html = method(url)
+
+        r.incr(count_key)
+        r.set(cached_key, html)
+        r.expire(cached_key, 10)
+        return html
     return wrapper
 
-@url_access_count
-def get_page(url: str) -> str:
-    """Obtain the HTML content of a particular URL"""
-    results = requests.get(url)
-    return results.text
 
-if __name__ == "__main__":
-    print(get_page('http://slowwly.robertomurray.co.uk'))
+@count_url_access
+def get_page(url: str) -> str:
+    """ Returns HTML content of a url """
+    res = requests.get(url)
+    return res.text
