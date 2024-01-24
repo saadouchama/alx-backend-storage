@@ -15,11 +15,10 @@ Tip: Use http://slowwly.robertomurray.co.uk to simulate
 a slow response and test your caching."""
 
 
+from functools import wraps
 import redis
 import requests
-from functools import wraps
 
-# Create a Redis connection
 r = redis.Redis()
 
 def url_access_count(method):
