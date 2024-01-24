@@ -15,11 +15,12 @@ Tip: Use http://slowwly.robertomurray.co.uk to simulate
 a slow response and test your caching."""
 
 
-from functools import wraps
 import requests
 import redis
+from functools import wraps
 
-r = redis.Redis()
+store = redis.Redis()
+
 
 def count_url_access(method):
     """ Decorator counting how many times
@@ -27,16 +28,16 @@ def count_url_access(method):
     @wraps(method)
     def wrapper(url):
         cached_key = "cached:" + url
-        cached_data = r.get(cached_key)
+        cached_data = store.get(cached_key)
         if cached_data:
             return cached_data.decode("utf-8")
 
         count_key = "count:" + url
         html = method(url)
 
-        r.incr(count_key)
-        r.set(cached_key, html)
-        r.expire(cached_key, 10)
+        store.incr(count_key)
+        store.set(cached_key, html)
+        store.expire(cached_key, 10)
         return html
     return wrapper
 
