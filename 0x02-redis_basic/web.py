@@ -15,9 +15,9 @@ Tip: Use http://slowwly.robertomurray.co.uk to simulate
 a slow response and test your caching."""
 
 
-from functools import wraps
 import requests
 import redis
+from functools import wraps
 
 r = redis.Redis()
 '''The module-level Redis instance.
@@ -48,3 +48,5 @@ def get_page(url: str) -> str:
     """ Returns HTML content of a url """
     res = requests.get(url)
     return res.text
+if __name__ == "__main__":
+    print(get_page('http://slowwly.robertomurray.co.uk'))
